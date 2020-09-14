@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+	    http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="driverClass" value="${jdbc.driverClass}"></property>
+        <property name="user" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+    <bean id="log" class="com.huadi.homework2.LogImpl">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <bean id="userService" class="com.huadi.homework2.UserServiceImpl">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+
+
+    <aop:config>
+        <aop:pointcut id="studentPoint" expression="execution(* com.huadi.homework2.UserService+.*(..))"/>
+        <aop:aspect id="logAspect" ref="log">
+            <aop:before method="before" pointcut-ref="studentPoint"></aop:before>
+          <!--  <aop:after method="after" pointcut-ref="studentPoint"></aop:after>-->
+            <aop:around method="around" pointcut-ref="studentPoint"></aop:around>
+          <!--  <aop:after-returning method="returns" pointcut-ref="studentPoint"></aop:after-returning>-->
+
+        </aop:aspect>
+    </aop:config>
+
+
+</beans>
